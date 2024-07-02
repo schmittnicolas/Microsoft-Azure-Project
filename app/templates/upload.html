@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Upload Image</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function analyzeImage() {
+            fetch('/image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ imagePath: 'static/uploads/uploaded_image.jpg' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = JSON.stringify(data, null, 2);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <h1>Upload new File</h1>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    {% if user_image %}
+        <h2>Uploaded Image:</h2>
+        <img src="{{ url_for('static', filename=user_image) }}" alt="Uploaded Image" style="max-width: 300px; height: auto;">
+        <button onclick="analyzeImage()">Analyze Image</button>
+        <h2>Analysis Result:</h2>
+        <pre id="result"></pre>
+    {% endif %}
+</body>
+</html>
