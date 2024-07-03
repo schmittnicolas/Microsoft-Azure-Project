@@ -64,7 +64,18 @@
         $(document).ready(function() {
             $('#predict-image').click(function() {
                 $.post('/predict_image', function(data) {
-                    $('#image-prediction-result').text(JSON.stringify(data, null, 2));
+                    if (data.predictions) {
+                        let table = '<table class="table table-bordered mt-3"><thead><tr><th>Condition Type</th><th>Probability</th></tr></thead><tbody>';
+                        data.predictions.forEach(function(prediction) {
+                            table += `<tr><td>${prediction.tagName}</td><td>${(prediction.probability * 100).toFixed(2)}%</td></tr>`;
+                        });
+                        table += '</tbody></table>';
+                        $('#image-prediction-result').html(table);
+                    } else {
+                        $('#image-prediction-result').text("Error: No predictions found.");
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    $('#image-prediction-result').text("Error: " + (jqXHR.responseJSON ? jqXHR.responseJSON.error : textStatus));
                 });
             });
     
@@ -72,12 +83,12 @@
                 var $table = $(this);
                 var $headers = $table.find('th');
                 var $dataRows = $table.find('tbody tr');
-    
+
                 $dataRows.each(function(index) {
                     var $row = $(this);
                     var $predictButton = $('<button>').text('Predict').addClass('btn btn-sm btn-success ml-2');
                     var $resultCell = $('<td>').addClass('prediction-result');
-    
+
                     $predictButton.click(function() {
                         var rowData = {};
                         $row.find('td').each(function(i) {
@@ -87,25 +98,34 @@
                                 rowData[header] = value;
                             }
                         });
-    
+
                         $.ajax({
                             url: '/predict_excel',
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(rowData),
                             success: function(response) {
-                                $resultCell.text(JSON.stringify(response, null, 2));
+                                if (response.Results && response.Results.WebServiceOutput0) {
+                                    var diagnosis = response.Results.WebServiceOutput0[0].Diagnosis;
+                                    var diagnosisText = diagnosis === 'M' ? 'Malignant' : (diagnosis === 'B' ? 'Benign' : 'Unknown');
+                                    var table = '<table class="table table-bordered mt-3"><thead><tr><th>Diagnosis</th></tr></thead><tbody>';
+                                    table += `<tr><td>${diagnosisText}</td></tr>`;
+                                    table += '</tbody></table>';
+                                    $resultCell.html(table);
+                                } else {
+                                    $resultCell.text("Error: No predictions found.");
+                                }
                             },
                             error: function(jqXHR, textStatus, errorThrown) {
                                 $resultCell.text("Error: " + (jqXHR.responseJSON ? jqXHR.responseJSON.error : textStatus));
                             }
                         });
                     });
-    
+
                     $row.append($('<td>').append($predictButton));
                     $row.append($resultCell);
                 });
-    
+
                 $headers.parent().append($('<th>').text('Action'));
                 $headers.parent().append($('<th>').text('Prediction'));
             });
