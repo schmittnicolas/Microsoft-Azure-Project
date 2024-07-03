@@ -57,16 +57,14 @@ def upload_files():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    print(app.config['UPLOAD_FOLDER'], filename)
     root_dir = os.path.dirname(os.getcwd())
-    print(os.path.join(root_dir, 'Microsoft-Azure-Project', app.config['UPLOAD_FOLDER']))
     return send_from_directory(os.path.join(root_dir, 'Microsoft-Azure-Project', app.config['UPLOAD_FOLDER']), filename)
 
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
     if current_image_filename:
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], current_image_filename)
-        url = 'http://127.0.0.1/image'
+        url = 'http://127.0.0.1:80/image'
         files = {'imageData': open(image_path, 'rb')}
         response = requests.post(url, files=files)
         return jsonify(response.json())
