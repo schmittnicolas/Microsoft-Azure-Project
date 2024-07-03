@@ -57,7 +57,10 @@ def upload_files():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    print(app.config['UPLOAD_FOLDER'], filename)
+    root_dir = os.path.dirname(os.getcwd())
+    print(os.path.join(root_dir, 'Microsoft-Azure-Project', app.config['UPLOAD_FOLDER']))
+    return send_from_directory(os.path.join(root_dir, 'Microsoft-Azure-Project', app.config['UPLOAD_FOLDER']), filename)
 
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
